@@ -4,6 +4,7 @@ pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
 running = True
+double_jump = False
 dt = 0
 gravity = 0
 velocity = 0
@@ -19,6 +20,14 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                if double_jump:
+                    double_jump = False
+                    print("Double jump off")
+                else:
+                    double_jump = True
+                    print("Double jump on")
 
     screen.fill((70, 200, 255))
 
@@ -64,14 +73,14 @@ while running:
     if (keys[pygame.K_w] or keys[pygame.K_SPACE] or jumping) and (can_jump or velocity > 0):
         velocity = 1500 - jump_time * 75
         jumping = True
-        can_jump = False
+        can_jump = double_jump
         if velocity < 0:
             velocity = 0
             jumping = False
     else:
         velocity = 0
         jump_time = 0
-
+    # toggle double jump
     if (player_pos.y + (gravity - velocity) * dt) > 580:
         player_pos.y = 580
     else:
