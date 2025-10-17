@@ -15,9 +15,13 @@ player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 co_left = 0.3
 co_right = 0.3
 speed = 800
+scale = 4
+facing = 'left'
 
 floor_tile = pygame.image.load('Assets/F0.png')
 floor_tile = pygame.transform.scale(floor_tile, (96, 96))
+wizard = pygame.image.load('Assets/IMG_0015.PNG')
+wizard = pygame.transform.scale(wizard, (wizard.get_width() / scale, wizard.get_height() / scale))
 
 
 def build_floor(offset, height):
@@ -42,10 +46,13 @@ while running:
 
     screen.fill((70, 200, 255))
 
-    pygame.draw.circle(screen, "purple", player_pos, 40)  # player
+    if facing == 'left':
+        screen.blit(wizard, player_pos)
+    elif facing == 'right':
+        screen.blit(pygame.transform.flip(wizard, True, False), player_pos)
     # collisions
     floor = pygame.Rect(0, screen.get_height() - floor_tile.get_height() - 1, screen.get_width(), floor_tile.get_height() + 1)
-    player = pygame.Rect(player_pos.x, player_pos.y, 40, 40)
+    player = pygame.Rect(player_pos.x, player_pos.y, wizard.get_width(), wizard.get_height())
     touching_floor = pygame.Rect.colliderect(player, floor)
     build_floor(floor_tile.get_width(), floor_tile.get_height())
     jump_time += 1
@@ -61,6 +68,8 @@ while running:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a]:
+        if not keys[pygame.K_d]:
+            facing = 'left'
         if not touching_floor and jump_time > 8:
             player_pos.x -= speed * dt * co_left * 0.8
         else:
@@ -70,6 +79,8 @@ while running:
     else:
         co_left = 0.3
     if keys[pygame.K_d]:
+        if not keys[pygame.K_a]:
+            facing = 'right'
         if not touching_floor and jump_time > 8:
             player_pos.x += speed * dt * co_right * 0.8
         else:
@@ -90,15 +101,15 @@ while running:
         velocity = 0
         jump_time = 0
     # toggle double jump
-    if (player_pos.y + (gravity - velocity) * dt) > (screen.get_height() - floor_tile.get_height() - 40):
-        player_pos.y = screen.get_height() - floor_tile.get_height() - 40
+    if (player_pos.y + (gravity - velocity) * dt) > (screen.get_height() - floor_tile.get_height() - wizard.get_height()):
+        player_pos.y = screen.get_height() - floor_tile.get_height() - wizard.get_height()
     else:
         player_pos.y += (gravity - velocity) * dt
 
-    if player_pos.x > screen.get_width() - 40:
-        player_pos.x = screen.get_width() - 40
-    elif player_pos.x < 40:
-        player_pos.x = 40
+    if player_pos.x > screen.get_width() - wizard.get_width():
+        player_pos.x = screen.get_width() - wizard.get_width()
+    elif player_pos.x < 0:
+        player_pos.x = 0
 
     pygame.display.flip()
     dt = clock.tick(60) / 1000
