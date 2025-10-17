@@ -1,3 +1,5 @@
+import time
+
 import pygame
 
 pygame.init()
@@ -17,11 +19,15 @@ co_right = 0.3
 speed = 800
 scale = 4
 facing = 'left'
+will_shoot = False
+timer = 0
 
 floor_tile = pygame.image.load('Assets/F0.png')
 floor_tile = pygame.transform.scale(floor_tile, (96, 96))
 wizard = pygame.image.load('Assets/IMG_0015.PNG')
 wizard = pygame.transform.scale(wizard, (wizard.get_width() / scale, wizard.get_height() / scale))
+wizard_shoot = pygame.image.load('Assets/wizard_shoot.PNG')
+wizard_shoot = pygame.transform.scale(wizard_shoot, (wizard_shoot.get_width() / scale, wizard_shoot.get_height() / scale))
 
 
 def build_floor(offset, height):
@@ -29,6 +35,37 @@ def build_floor(offset, height):
     while i < (screen.get_width() / offset):
         screen.blit(floor_tile, (offset * i, screen.get_height() - height))
         i += 1
+
+
+def shooting_dir():
+    x, y = pygame.mouse.get_pos()
+    if x < player_pos.x:
+        return 'left'
+    else:
+        return 'right'
+
+
+def draw_wizard():
+    if pygame.mouse.get_pressed()[0]:
+        wiz = wizard_shoot
+        dif = [60 / scale, 0 / scale]
+    else:
+        wiz = wizard
+        dif = [0, 0]
+    if facing == 'left':
+        screen.blit(wiz, player_pos - dif)
+    elif facing == 'right':
+        screen.blit(pygame.transform.flip(wiz, True, False), player_pos)
+
+
+def shoot():
+    print('shot')
+    dif = [0, 280 / scale]
+    if facing == 'left':
+        pygame.draw.line(screen, 'red', player_pos + dif - [60 / scale, 0], pygame.mouse.get_pos(), 4)
+    else:
+        pygame.draw.line(screen, 'red', player_pos + dif + [wizard_shoot.get_width(), 0], pygame.mouse.get_pos(), 4)
+    pygame.draw.circle(screen, 'red', pygame.mouse.get_pos(), 10)
 
 
 while running:
@@ -43,13 +80,13 @@ while running:
                 else:
                     double_jump = True
                     print("Double jump on")
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                will_shoot = True
 
     screen.fill((70, 200, 255))
 
-    if facing == 'left':
-        screen.blit(wizard, player_pos)
-    elif facing == 'right':
-        screen.blit(pygame.transform.flip(wizard, True, False), player_pos)
+    draw_wizard()
     # collisions
     floor = pygame.Rect(0, screen.get_height() - floor_tile.get_height() - 1, screen.get_width(), floor_tile.get_height() + 1)
     player = pygame.Rect(player_pos.x, player_pos.y, wizard.get_width(), wizard.get_height())
@@ -100,7 +137,13 @@ while running:
     else:
         velocity = 0
         jump_time = 0
-    # toggle double jump
+
+    if pygame.mouse.get_pressed()[0]:
+        facing = shooting_dir()
+        if will_shoot:
+            shoot()
+            will_shoot = False
+
     if (player_pos.y + (gravity - velocity) * dt) > (screen.get_height() - floor_tile.get_height() - wizard.get_height()):
         player_pos.y = screen.get_height() - floor_tile.get_height() - wizard.get_height()
     else:
