@@ -16,6 +16,17 @@ co_left = 0.3
 co_right = 0.3
 speed = 800
 
+floor_tile = pygame.image.load('Assets/F0.png')
+floor_tile = pygame.transform.scale(floor_tile, (96, 96))
+
+
+def build_floor(offset, height):
+    i = 0
+    while i < (screen.get_width() / offset):
+        screen.blit(floor_tile, (offset * i, screen.get_height() - height))
+        i += 1
+
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -32,17 +43,15 @@ while running:
     screen.fill((70, 200, 255))
 
     pygame.draw.circle(screen, "purple", player_pos, 40)  # player
-    pygame.draw.rect(screen, "black", [0, screen.get_height() - 100, screen.get_width(), 100])  # floor
     # collisions
-    floor = pygame.Rect(0, screen.get_height() - 101, screen.get_width(), 101)
+    floor = pygame.Rect(0, screen.get_height() - floor_tile.get_height() - 1, screen.get_width(), floor_tile.get_height() + 1)
     player = pygame.Rect(player_pos.x, player_pos.y, 40, 40)
     touching_floor = pygame.Rect.colliderect(player, floor)
-
+    build_floor(floor_tile.get_width(), floor_tile.get_height())
     jump_time += 1
 
     if touching_floor:
         gravity = 0
-        player_pos.y = 580
         can_jump = True
         jumping = False
     elif velocity != 0:
@@ -81,10 +90,16 @@ while running:
         velocity = 0
         jump_time = 0
     # toggle double jump
-    if (player_pos.y + (gravity - velocity) * dt) > 580:
-        player_pos.y = 580
+    if (player_pos.y + (gravity - velocity) * dt) > (screen.get_height() - floor_tile.get_height() - 40):
+        player_pos.y = screen.get_height() - floor_tile.get_height() - 40
     else:
         player_pos.y += (gravity - velocity) * dt
+
+    if player_pos.x > screen.get_width() - 40:
+        player_pos.x = screen.get_width() - 40
+    elif player_pos.x < 40:
+        player_pos.x = 40
+
     pygame.display.flip()
     dt = clock.tick(60) / 1000
 
