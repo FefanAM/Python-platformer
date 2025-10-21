@@ -14,13 +14,15 @@ jump_time = 0
 can_jump = True
 jumping = False
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
-co_left = 0.3
-co_right = 0.3
-speed = 800
+co_left = 0.6
+co_right = 0.6
+speed = 23
 scale = 4
 facing = 'left'
 will_shoot = False
 timer = 0
+jump_height = 40
+drag = jump_height / 10 - 2 * jump_height / 100
 
 floor_tile = pygame.image.load('Assets/F0.png')
 floor_tile = pygame.transform.scale(floor_tile, (96, 96))
@@ -101,16 +103,16 @@ while running:
     elif velocity != 0:
         gravity = 0
     else:
-        gravity += 75
+        gravity += drag * 1.4
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_a]:
         if not keys[pygame.K_d]:
             facing = 'left'
         if not touching_floor and jump_time > 8:
-            player_pos.x -= speed * dt * co_left * 0.8
+            player_pos.x -= speed * co_left * 0.8
         else:
-            player_pos.x -= speed * dt * co_left
+            player_pos.x -= speed * co_left
         if co_left < 1:
             co_left += 0.05
     else:
@@ -119,16 +121,16 @@ while running:
         if not keys[pygame.K_a]:
             facing = 'right'
         if not touching_floor and jump_time > 8:
-            player_pos.x += speed * dt * co_right * 0.8
+            player_pos.x += speed * co_right * 0.8
         else:
-            player_pos.x += speed * dt * co_right
+            player_pos.x += speed * co_right
         if co_right < 1:
             co_right += 0.05
     else:
         co_right = 0.3
     # jumping
     if (keys[pygame.K_w] or keys[pygame.K_SPACE] or jumping) and (can_jump or velocity > 0):
-        velocity = 1500 - jump_time * 75
+        velocity = jump_height - jump_time * drag
         jumping = True
         can_jump = double_jump
         if velocity < 0:
@@ -144,10 +146,10 @@ while running:
             shoot()
             will_shoot = False
 
-    if (player_pos.y + (gravity - velocity) * dt) > (screen.get_height() - floor_tile.get_height() - wizard.get_height()):
+    if (player_pos.y + (gravity - velocity)) > (screen.get_height() - floor_tile.get_height() - wizard.get_height()):
         player_pos.y = screen.get_height() - floor_tile.get_height() - wizard.get_height()
     else:
-        player_pos.y += (gravity - velocity) * dt
+        player_pos.y += (gravity - velocity)
 
     if player_pos.x > screen.get_width() - wizard.get_width():
         player_pos.x = screen.get_width() - wizard.get_width()
@@ -155,6 +157,6 @@ while running:
         player_pos.x = 0
 
     pygame.display.flip()
-    dt = clock.tick(60) / 1000
+    clock.tick(60)
 
 pygame.quit()
