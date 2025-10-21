@@ -1,4 +1,3 @@
-import time
 
 import pygame
 
@@ -21,9 +20,9 @@ scale = 4
 facing = 'left'
 will_shoot = False
 timer = 0
+last_update = 0
 jump_height = 40
 drag = jump_height / 10 - 2 * jump_height / 100
-
 floor_tile = pygame.image.load('Assets/F0.png')
 floor_tile = pygame.transform.scale(floor_tile, (96, 96))
 wizard = pygame.image.load('Assets/IMG_0015.PNG')
@@ -61,14 +60,19 @@ def draw_wizard():
 
 
 def shoot():
-    print('shot')
     dif = [0, 280 / scale]
-    if facing == 'left':
-        pygame.draw.line(screen, 'red', player_pos + dif - [60 / scale, 0], pygame.mouse.get_pos(), 4)
-    else:
-        pygame.draw.line(screen, 'red', player_pos + dif + [wizard_shoot.get_width(), 0], pygame.mouse.get_pos(), 4)
-    pygame.draw.circle(screen, 'red', pygame.mouse.get_pos(), 10)
+    if will_shoot:
+        if facing == 'left':
+            pygame.draw.line(screen, 'red', player_pos + dif - [60 / scale, 0], pygame.mouse.get_pos(), 4)
+        else:
+            pygame.draw.line(screen, 'red', player_pos + dif + [wizard_shoot.get_width(), 0], pygame.mouse.get_pos(), 4)
+        pygame.draw.circle(screen, 'red', pygame.mouse.get_pos(), 10)
 
+def add_timer(time):
+    if time >= 60 * 60:
+        return 0
+    else:
+        return time + 1
 
 while running:
     for event in pygame.event.get():
@@ -85,6 +89,7 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 will_shoot = True
+                facing = shooting_dir()
 
     screen.fill((70, 200, 255))
 
@@ -140,11 +145,8 @@ while running:
         velocity = 0
         jump_time = 0
 
-    if pygame.mouse.get_pressed()[0]:
-        facing = shooting_dir()
-        if will_shoot:
-            shoot()
-            will_shoot = False
+    shoot()
+    will_shoot = False
 
     if (player_pos.y + (gravity - velocity)) > (screen.get_height() - floor_tile.get_height() - wizard.get_height()):
         player_pos.y = screen.get_height() - floor_tile.get_height() - wizard.get_height()
@@ -157,6 +159,6 @@ while running:
         player_pos.x = 0
 
     pygame.display.flip()
-    clock.tick(60)
-
+    dt = clock.tick(60)
+    timer = add_timer(timer)
 pygame.quit()
